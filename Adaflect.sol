@@ -128,7 +128,7 @@ contract Adaflect is ERC20, Ownable {
         address indexed processor
     );
 
-    constructor() public ERC20("Adaflect", "ADAFLECT") {
+    constructor() public ERC20("ADAFlect", "ADAFlect") {
 
 
         dividendTracker = new ADAFLECTDividendTracker();
@@ -168,11 +168,11 @@ contract Adaflect is ERC20, Ownable {
     }
 
     function updateDividendTracker(address newAddress) public onlyOwner {
-        require(newAddress != address(dividendTracker), "Adaflect: The dividend tracker already has that address");
+        require(newAddress != address(dividendTracker), "ADAFlect: The dividend tracker already has that address");
 
         ADAFLECTDividendTracker newDividendTracker = ADAFLECTDividendTracker(payable(newAddress));
 
-        require(newDividendTracker.owner() == address(this), "Adaflect: The new dividend tracker must be owned by the Adaflect token contract");
+        require(newDividendTracker.owner() == address(this), "ADAFlect: The new dividend tracker must be owned by the Adaflect token contract");
 
         newDividendTracker.excludeFromDividends(address(newDividendTracker));
         newDividendTracker.excludeFromDividends(address(this));
@@ -185,7 +185,7 @@ contract Adaflect is ERC20, Ownable {
     }
 
     function updateUniswapV2Router(address newAddress) public onlyOwner {
-        require(newAddress != address(uniswapV2Router), "Adaflect: The router already has that address");
+        require(newAddress != address(uniswapV2Router), "ADAFlect: The router already has that address");
         emit UpdateUniswapV2Router(newAddress, address(uniswapV2Router));
         uniswapV2Router = IUniswapV2Router02(newAddress);
         address _uniswapV2Pair = IUniswapV2Factory(uniswapV2Router.factory())
@@ -194,7 +194,7 @@ contract Adaflect is ERC20, Ownable {
     }
 
     function excludeFromFees(address account, bool excluded) public onlyOwner {
-        require(_isExcludedFromFees[account] != excluded, "Adaflect: Account is already the value of 'excluded'");
+        require(_isExcludedFromFees[account] != excluded, "ADAFlect: Account is already the value of 'excluded'");
         _isExcludedFromFees[account] = excluded;
 
         emit ExcludeFromFees(account, excluded);
@@ -209,37 +209,37 @@ contract Adaflect is ERC20, Ownable {
     }
 
     function setMarketingWallet(address payable wallet) external onlyOwner{
-        require(canChangeMarketingWallet == true, "Adaflect: The ability change the marketing wallet has been disabled.");
+        require(canChangeMarketingWallet == true, "ADAFlect: The ability change the marketing wallet has been disabled.");
         _marketingWalletAddress = wallet;
     }
 
     function setADARewardsFee(uint256 value) external onlyOwner{
-        require(canChangeFees == true, "Adaflect: The ability to update or change fees has been disabled.");
+        require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         ADARewardsFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
     }
 
     function setLiquidityFee(uint256 value) external onlyOwner{
-        require(canChangeFees == true, "Adaflect: The ability to update or change fees has been disabled.");
+        require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         liquidityFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
     }
 
     function setMarketingFee(uint256 value) external onlyOwner{
-        require(canChangeFees == true, "Adaflect: The ability to update or change fees has been disabled.");
+        require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         marketingFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
     }
 
 
     function setAutomatedMarketMakerPair(address pair, bool value) public onlyOwner {
-        require(pair != uniswapV2Pair, "Adaflect: The PancakeSwap pair cannot be removed from automatedMarketMakerPairs");
+        require(pair != uniswapV2Pair, "ADAFlect: The PancakeSwap pair cannot be removed from automatedMarketMakerPairs");
 
         _setAutomatedMarketMakerPair(pair, value);
     }
 
     function blacklistAddress(address account, bool value) external onlyOwner{
-        require(canBlacklist == true, "Adaflect: The ability to blacklist accounts has been disabled.");
+        require(canBlacklist == true, "ADAFlect: The ability to blacklist accounts has been disabled.");
         isBlacklisted[account] = value;
     }
 
@@ -260,7 +260,7 @@ contract Adaflect is ERC20, Ownable {
 
 
     function _setAutomatedMarketMakerPair(address pair, bool value) private {
-        require(automatedMarketMakerPairs[pair] != value, "Adaflect: Automated market maker pair is already set to that value");
+        require(automatedMarketMakerPairs[pair] != value, "ADAFlect: Automated market maker pair is already set to that value");
         automatedMarketMakerPairs[pair] = value;
 
         if(value) {
@@ -272,8 +272,8 @@ contract Adaflect is ERC20, Ownable {
 
 
     function updateGasForProcessing(uint256 newValue) public onlyOwner {
-        require(newValue >= 200000 && newValue <= 500000, "Adaflect: gasForProcessing must be between 200,000 and 500,000");
-        require(newValue != gasForProcessing, "Adaflect: Cannot update gasForProcessing to same value");
+        require(newValue >= 200000 && newValue <= 500000, "ADAFlect: gasForProcessing must be between 200,000 and 500,000");
+        require(newValue != gasForProcessing, "ADAFlect: Cannot update gasForProcessing to same value");
         emit GasForProcessingUpdated(newValue, gasForProcessing);
         gasForProcessing = newValue;
     }
@@ -541,17 +541,17 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
 
     event Claim(address indexed account, uint256 amount, bool indexed automatic);
 
-    constructor() public DividendPayingToken("Adaflect_Dvt", "Adaflect_Dvt") {
+    constructor() public DividendPayingToken("ADAFlect_Dvt", "ADAFlect_Dvt") {
         claimWait = 3600;
         minimumTokenBalanceForDividends = 200000 * (10**18); //must hold 200000+ tokens
     }
 
     function _transfer(address, address, uint256) internal override {
-        require(false, "Adaflect_Dividend_Tracker: No transfers allowed");
+        require(false, "ADAFlect_Dividend_Tracker: No transfers allowed");
     }
 
     function withdrawDividend() public override {
-        require(false, "Adaflect_Dividend_Tracker: withdrawDividend disabled. Use the 'claim' function on the main Adaflect contract.");
+        require(false, "ADAFlect_Dividend_Tracker: withdrawDividend disabled. Use the 'claim' function on the main Adaflect contract.");
     }
 
     function excludeFromDividends(address account) external onlyOwner {
@@ -565,8 +565,8 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
     }
 
     function updateClaimWait(uint256 newClaimWait) external onlyOwner {
-        require(newClaimWait >= 3600 && newClaimWait <= 86400, "Adaflect_Dividend_Tracker: claimWait must be updated to between 1 and 24 hours");
-        require(newClaimWait != claimWait, "Adaflect_Dividend_Tracker: Cannot update claimWait to same value");
+        require(newClaimWait >= 3600 && newClaimWait <= 86400, "ADAFlect_Dividend_Tracker: claimWait must be updated to between 1 and 24 hours");
+        require(newClaimWait != claimWait, "ADAFlect_Dividend_Tracker: Cannot update claimWait to same value");
         emit ClaimWaitUpdated(newClaimWait, claimWait);
         claimWait = newClaimWait;
     }
