@@ -21,6 +21,7 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
     using SafeMathUint for uint256;
     using SafeMathInt for int256;
 
+    event ErrorEmission(string displayError, string memoryReport);
     address public immutable ADA = address(0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47); //ADA
 
 
@@ -28,7 +29,6 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
     // For more discussion about choosing the value of `magnitude`,
     //  see https://github.com/ethereum/EIPs/issues/1726#issuecomment-472352728
     uint256 constant internal magnitude = 2**128;
-
     uint256 internal magnifiedDividendPerShare;
 
     // About dividendCorrection:
@@ -78,7 +78,12 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
         if (_withdrawableDividend > 0) {
             withdrawnDividends[user] = withdrawnDividends[user].add(_withdrawableDividend);
             emit DividendWithdrawn(user, _withdrawableDividend);
-            bool success = IERC20(ADA).transfer(user, _withdrawableDividend);
+            bool success = false;
+            try IERC20(ADA).transfer(user, _withdrawableDividend) {
+                success = true;
+            } catch (bytes memory adaflectError) {
+                emit ErrorEmission("Could not transfer ADA Dividends (Dividends currently too low?)", adaflectError);
+            }
 
             if(!success) {
                 withdrawnDividends[user] = withdrawnDividends[user].sub(_withdrawableDividend);

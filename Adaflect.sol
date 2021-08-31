@@ -69,11 +69,11 @@ contract Adaflect is ERC20, Ownable {
 
     ADAFLECTDividendTracker public dividendTracker;
 
-    address public deadWallet = 0x000000000000000000000000000000000000dEaD;
+    address public constant deadWallet = 0x000000000000000000000000000000000000dEaD;
 
-    address public immutable ADA = address(0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47); //ADA
+    address public constant ADA = address(0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47); //ADA
 
-    uint256 public swapTokensAtAmount = 2000000 * (10**18);
+    uint256 public constant swapTokensAtAmount = 2000000 * (10**18);
 
     mapping(address => bool) public isBlacklisted;
 
@@ -83,6 +83,10 @@ contract Adaflect is ERC20, Ownable {
     uint256 public totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
 
     address public _marketingWalletAddress = 0xA51B67084e8dfdb0f0993F275C6627c6d64E2c30;
+
+    uint256 public blacklistDeadline = 0;
+    bool public tradingReady = false;
+
 
     // use by default 300,000 gas to process auto-claiming dividends
     uint256 public gasForProcessing = 300000;
@@ -95,7 +99,6 @@ contract Adaflect is ERC20, Ownable {
     // could be subject to a maximum transfer amount
     mapping (address => bool) public automatedMarketMakerPairs;
 
-    event UpdateDividendTracker(address indexed newAddress, address indexed oldAddress);
     event UpdateUniswapV2Router(address indexed newAddress, address indexed oldAddress);
 
     event ExcludeFromFees(address indexed account, bool isExcluded);
@@ -155,45 +158,74 @@ contract Adaflect is ERC20, Ownable {
         excludeFromFees(owner(), true);
         excludeFromFees(_marketingWalletAddress, true);
         excludeFromFees(address(this), true);
+    }
 
+    function prepForLaunch() public onlyOwner {
+        require(!tradingReady, "ADAFlect: Contract has already been prepped for trading.");
+
+        tradingReady = true; //once set to true, this function can never be called again.
         /*
             _mint is an internal function in ERC20.sol that is only called here,
             and CANNOT be called ever again
         */
         _mint(owner(), 100000000000 * (10**18));
+        blacklistDeadline = now + 1 hours; //A maximum of 1 hour is given to blacklist snipers/flashbots
+
+        //Init list of known frontrunner & flashbots for blacklisting
+        // List of bots from t.me/FairLaunchCalls
+        blacklistAddress(address(0xA39C50bf86e15391180240938F469a7bF4fDAe9a), true);
+        blacklistAddress(address(0xFFFFF6E70842330948Ca47254F2bE673B1cb0dB7), true);
+        blacklistAddress(address(0xD334C5392eD4863C81576422B968C6FB90EE9f79), true);
+        blacklistAddress(address(0x20f6fCd6B8813c4f98c0fFbD88C87c0255040Aa3), true);
+        blacklistAddress(address(0xC6bF34596f74eb22e066a878848DfB9fC1CF4C65), true);
+        blacklistAddress(address(0x231DC6af3C66741f6Cf618884B953DF0e83C1A2A), true);
+        blacklistAddress(address(0x00000000003b3cc22aF3aE1EAc0440BcEe416B40), true);
+        blacklistAddress(address(0x42d4C197036BD9984cA652303e07dD29fA6bdB37), true);
+        blacklistAddress(address(0x22246F9BCa9921Bfa9A3f8df5baBc5Bc8ee73850), true);
+        blacklistAddress(address(0xbCb05a3F85d34f0194C70d5914d5C4E28f11Cc02), true);
+        blacklistAddress(address(0x5B83A351500B631cc2a20a665ee17f0dC66e3dB7), true);
+        blacklistAddress(address(0x39608b6f20704889C51C0Ae28b1FCA8F36A5239b), true);
+        blacklistAddress(address(0x136F4B5b6A306091b280E3F251fa0E21b1280Cd5), true);
+        blacklistAddress(address(0x4aEB32e16DcaC00B092596ADc6CD4955EfdEE290), true);
+        blacklistAddress(address(0xe986d48EfeE9ec1B8F66CD0b0aE8e3D18F091bDF), true);
+        blacklistAddress(address(0x59341Bc6b4f3Ace878574b05914f43309dd678c7), true);
+        blacklistAddress(address(0xc496D84215d5018f6F53E7F6f12E45c9b5e8e8A9), true);
+        blacklistAddress(address(0x39608b6f20704889C51C0Ae28b1FCA8F36A5239b), true);
+        blacklistAddress(address(0xfe9d99ef02E905127239E85A611c29ad32c31c2F), true);
+        blacklistAddress(address(0x9eDD647D7d6Eceae6bB61D7785Ef66c5055A9bEE), true);
+        blacklistAddress(address(0x72b30cDc1583224381132D379A052A6B10725415), true);
+        blacklistAddress(address(0x7100e690554B1c2FD01E8648db88bE235C1E6514), true);
+        blacklistAddress(address(0x000000917de6037d52b1F0a306eeCD208405f7cd), true);
+        blacklistAddress(address(0x59903993Ae67Bf48F10832E9BE28935FEE04d6F6), true);
+        blacklistAddress(address(0x00000000000003441d59DdE9A90BFfb1CD3fABf1), true);
+        blacklistAddress(address(0x0000000000007673393729D5618DC555FD13f9aA), true);
+        blacklistAddress(address(0xA3b0e79935815730d942A444A84d4Bd14A339553), true);
+        blacklistAddress(address(0x000000005804B22091aa9830E50459A15E7C9241), true);
+        blacklistAddress(address(0x323b7F37d382A68B0195b873aF17CeA5B67cd595), true);
+        blacklistAddress(address(0x6dA4bEa09C3aA0761b09b19837D9105a52254303), true);
+        blacklistAddress(address(0x000000000000084e91743124a982076C59f10084), true);
+        blacklistAddress(address(0x1d6E8BAC6EA3730825bde4B005ed7B2B39A2932d), true);
+        blacklistAddress(address(0xfad95B6089c53A0D1d861eabFaadd8901b0F8533), true);
+        blacklistAddress(address(0x9282dc5c422FA91Ff2F6fF3a0b45B7BF97CF78E7), true);
+        blacklistAddress(address(0x45fD07C63e5c316540F14b2002B085aEE78E3881), true);
+        blacklistAddress(address(0xDC81a3450817A58D00f45C86d0368290088db848), true);
+        blacklistAddress(address(0xFe76f05dc59fEC04184fA0245AD0C3CF9a57b964), true);
+        blacklistAddress(address(0xd7d3EE77D35D0a56F91542D4905b1a2b1CD7cF95), true);
+        blacklistAddress(address(0xa1ceC245c456dD1bd9F2815a6955fEf44Eb4191b), true);
+        blacklistAddress(address(0xe516bDeE55b0b4e9bAcaF6285130De15589B1345), true);
+        blacklistAddress(address(0xE031b36b53E53a292a20c5F08fd1658CDdf74fce), true);
+        blacklistAddress(address(0x65A67DF75CCbF57828185c7C050e34De64d859d0), true);
+        blacklistAddress(address(0xe516bDeE55b0b4e9bAcaF6285130De15589B1345), true);
+        blacklistAddress(address(0x7589319ED0fD750017159fb4E4d96C63966173C1), true);
+        blacklistAddress(address(0x0000000099cB7fC48a935BcEb9f05BbaE54e8987), true);
+        blacklistAddress(address(0x03BB05BBa541842400541142d20e9C128Ba3d17c), true);
     }
 
     receive() external payable {
 
     }
 
-    function updateDividendTracker(address newAddress) public onlyOwner {
-        require(newAddress != address(dividendTracker), "ADAFlect: The dividend tracker already has that address");
-
-        ADAFLECTDividendTracker newDividendTracker = ADAFLECTDividendTracker(payable(newAddress));
-
-        require(newDividendTracker.owner() == address(this), "ADAFlect: The new dividend tracker must be owned by the Adaflect token contract");
-
-        newDividendTracker.excludeFromDividends(address(newDividendTracker));
-        newDividendTracker.excludeFromDividends(address(this));
-        newDividendTracker.excludeFromDividends(owner());
-        newDividendTracker.excludeFromDividends(address(uniswapV2Router));
-
-        emit UpdateDividendTracker(newAddress, address(dividendTracker));
-
-        dividendTracker = newDividendTracker;
-    }
-
-    function updateUniswapV2Router(address newAddress) public onlyOwner {
-        require(newAddress != address(uniswapV2Router), "ADAFlect: The router already has that address");
-        emit UpdateUniswapV2Router(newAddress, address(uniswapV2Router));
-        uniswapV2Router = IUniswapV2Router02(newAddress);
-        address _uniswapV2Pair = IUniswapV2Factory(uniswapV2Router.factory())
-        .createPair(address(this), uniswapV2Router.WETH());
-        uniswapV2Pair = _uniswapV2Pair;
-    }
-
-    function excludeFromFees(address account, bool excluded) public onlyOwner {
+    function excludeFromFees(address account, bool excluded) external onlyOwner {
         require(_isExcludedFromFees[account] != excluded, "ADAFlect: Account is already the value of 'excluded'");
         _isExcludedFromFees[account] = excluded;
 
@@ -209,23 +241,28 @@ contract Adaflect is ERC20, Ownable {
     }
 
     function setMarketingWallet(address payable wallet) external onlyOwner{
+        require(wallet != address(0), "ADAFlect: Marketing wallet cannot be 0!");
+        require(wallet != deadWallet, "ADAFlect: Marketing wallet cannot be the dead wallet!");
         require(canChangeMarketingWallet == true, "ADAFlect: The ability change the marketing wallet has been disabled.");
         _marketingWalletAddress = wallet;
     }
 
     function setADARewardsFee(uint256 value) external onlyOwner{
+        require(value <= 10, "ADAFlect: Maximum ADA Reward fee is 10%");
         require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         ADARewardsFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
     }
 
     function setLiquidityFee(uint256 value) external onlyOwner{
+        require(value <= 4, "ADAFlect: Maximum Liquidity fee is 4%");
         require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         liquidityFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
     }
 
     function setMarketingFee(uint256 value) external onlyOwner{
+        require(value <= 5, "ADAFlect: Maximum Marketing fee is 5%");
         require(canChangeFees == true, "ADAFlect: The ability to update or change fees has been disabled.");
         marketingFee = value;
         totalFees = ADARewardsFee.add(liquidityFee).add(marketingFee);
@@ -238,8 +275,11 @@ contract Adaflect is ERC20, Ownable {
         _setAutomatedMarketMakerPair(pair, value);
     }
 
-    function blacklistAddress(address account, bool value) external onlyOwner{
-        require(canBlacklist == true, "ADAFlect: The ability to blacklist accounts has been disabled.");
+    function blacklistAddress(address account, bool value) public onlyOwner{
+        require(canBlacklist == true, "ADAFlect: The ability to blacklist / amnesty accounts has been disabled.");
+        if (value) {
+            require(now < blacklistDeadline, "ADAFlect: The ability to blacklist accounts has been disabled.");
+        }
         isBlacklisted[account] = value;
     }
 
@@ -298,7 +338,7 @@ contract Adaflect is ERC20, Ownable {
         return dividendTracker.withdrawableDividendOf(account);
     }
 
-    function dividendTokenBalanceOf(address account) public view returns (uint256) {
+    function dividendTokenBalanceOf(address account) external view returns (uint256) {
         return dividendTracker.balanceOf(account);
     }
 
@@ -440,15 +480,17 @@ contract Adaflect is ERC20, Ownable {
         uint256 initialBalance = address(this).balance;
 
         // swap tokens for ETH
-        swapTokensForEth(half); // <- this breaks the ETH -> HATE swap when swap+liquify is triggered
+        swapTokensForEth(half);
 
         // how much ETH did we just swap into?
         uint256 newBalance = address(this).balance.sub(initialBalance);
 
         // add liquidity to uniswap
-        addLiquidity(otherHalf, newBalance);
+        if (newBalance > 0) {
+            addLiquidity(otherHalf, newBalance);
 
-        emit SwapAndLiquify(half, newBalance, otherHalf);
+            emit SwapAndLiquify(half, newBalance, otherHalf);
+        }
     }
 
 
@@ -541,7 +583,7 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
 
     event Claim(address indexed account, uint256 amount, bool indexed automatic);
 
-    constructor() public DividendPayingToken("ADAFlect_Dvt", "ADAFlect_Dvt") {
+    constructor() public DividendPayingToken("ADAFlectDvt", "ADAFlectDvt") {
         claimWait = 3600;
         minimumTokenBalanceForDividends = 200000 * (10**18); //must hold 200000+ tokens
     }
@@ -602,12 +644,12 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
                 iterationsUntilProcessed = index.sub(int256(lastProcessedIndex));
             }
             else {
-                uint256 processesUntilEndOfArray = tokenHoldersMap.keys.length > lastProcessedIndex ?
+                uint256 processesUntilStartOfArray = tokenHoldersMap.keys.length > lastProcessedIndex ?
                 tokenHoldersMap.keys.length.sub(lastProcessedIndex) :
                 0;
 
 
-                iterationsUntilProcessed = index.add(int256(processesUntilEndOfArray));
+                iterationsUntilProcessed = index.add(int256(processesUntilStartOfArray));
             }
         }
 
@@ -627,7 +669,7 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
     }
 
     function getAccountAtIndex(uint256 index)
-    public view returns (
+    external view returns (
         address,
         int256,
         int256,
@@ -670,7 +712,7 @@ contract ADAFLECTDividendTracker is Ownable, DividendPayingToken {
         processAccount(account, true);
     }
 
-    function process(uint256 gas) public returns (uint256, uint256, uint256) {
+    function process(uint256 gas) external returns (uint256, uint256, uint256) {
         uint256 numberOfTokenHolders = tokenHoldersMap.keys.length;
 
         if(numberOfTokenHolders == 0) {
