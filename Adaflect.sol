@@ -107,6 +107,8 @@ contract Adaflect is ERC20, Ownable {
     event LiquidityWalletUpdated(address indexed newLiquidityWallet, address indexed oldLiquidityWallet);
     event GasForProcessingUpdated(uint256 indexed newValue, uint256 indexed oldValue);
 
+    event PrepForLaunch(uint256 blocktime);
+
     event DisabledFeeChanging(bool disabled);
     event DisabledBlacklistAbility(bool disabled);
     event DisabledMarketingWalletChanges(bool disabled);
@@ -219,13 +221,15 @@ contract Adaflect is ERC20, Ownable {
         blacklistAddress(address(0x7589319ED0fD750017159fb4E4d96C63966173C1), true);
         blacklistAddress(address(0x0000000099cB7fC48a935BcEb9f05BbaE54e8987), true);
         blacklistAddress(address(0x03BB05BBa541842400541142d20e9C128Ba3d17c), true);
+
+        emit PrepForLaunch(now);
     }
 
     receive() external payable {
 
     }
 
-    function excludeFromFees(address account, bool excluded) external onlyOwner {
+    function excludeFromFees(address account, bool excluded) public onlyOwner {
         require(_isExcludedFromFees[account] != excluded, "ADAFlect: Account is already the value of 'excluded'");
         _isExcludedFromFees[account] = excluded;
 

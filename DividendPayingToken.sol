@@ -21,7 +21,7 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
     using SafeMathUint for uint256;
     using SafeMathInt for int256;
 
-    event ErrorEmission(string displayError, string memoryReport);
+    event ErrorEmission(string displayError);
     address public immutable ADA = address(0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47); //ADA
 
 
@@ -81,8 +81,8 @@ contract DividendPayingToken is ERC20, Ownable, DividendPayingTokenInterface, Di
             bool success = false;
             try IERC20(ADA).transfer(user, _withdrawableDividend) {
                 success = true;
-            } catch (bytes memory adaflectError) {
-                emit ErrorEmission("Could not transfer ADA Dividends (Dividends currently too low?)", adaflectError);
+            } catch {
+                emit ErrorEmission("Could not transfer ADA Dividends (Dividends currently too low?)");
             }
 
             if(!success) {
